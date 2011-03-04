@@ -1,0 +1,18 @@
+
+= register
+
+fun experiment with Redis
+
+
+...
+
+
+== license
+
+MIT
+
+
+== many thanks to
+
+- the Redis authors and community
+
