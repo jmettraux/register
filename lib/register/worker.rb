@@ -26,6 +26,44 @@
 module Register
 
   class Worker
+
+    attr_reader :running
+
+    def initialize(redis_opts)
+
+      @client = Register::Client.new(redis_opts)
+
+      run
+    end
+
+    def run
+
+      @running = true
+
+      loop do
+        break if @running = false
+        step
+      end
+    end
+
+    def stop
+
+      @running = false
+    end
+
+    def shutdown
+
+      @client.close
+    end
+
+    protected
+
+    def step
+
+      call = @client.redis.blpop('_calls_', 1)
+
+      p call
+    end
   end
 end
 

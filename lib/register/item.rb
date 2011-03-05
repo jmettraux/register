@@ -25,6 +25,14 @@
 
 module Register
 
+  class MissingItemError < StandardError
+
+    def initialize(item_id)
+
+      super("item '#{item_id}' couldn't be found")
+    end
+  end
+
   class Item
 
     def initialize(h)

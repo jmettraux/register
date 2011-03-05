@@ -49,6 +49,32 @@ describe Register::Client do
     end
   end
 
+  describe '#get' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    context 'when the item exists' do
+
+      it 'returns the value in the item' do
+
+        h = { '_id' => 'x', 'k' => 'v' }
+        @r.set('x', Rufus::Json.encode(h))
+
+        cl.get('x', 'k').should == 'v'
+      end
+    end
+
+    context 'when the item does not exist' do
+
+      it 'raises Register::MissingItemError' do
+
+        lambda {
+          cl.get('x', 'k')
+        }.should raise_error(Register::MissingItemError)
+      end
+    end
+  end
+
   describe '#close' do
 
     it 'closes the client' do

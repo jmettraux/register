@@ -41,7 +41,16 @@ module Register
       from_json(@redis.get(item_id))
     end
 
-    def call(item_id, message)
+    def get(item_id, key)
+
+      if item = read(item_id)
+        item[key]
+      else
+        raise Register::MissingItemError.new(item_id)
+      end
+    end
+
+    def call(item_id, key, message)
 
       # TODO : place order in order list
     end
