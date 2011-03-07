@@ -64,7 +64,7 @@ module Register
 
     def success?(ticket, delete=true)
 
-      result = hget('_tickets', ticket)
+      result = @redis.hget('_tickets', ticket)
       hdel('_tickets', ticket) if result && delete
 
       result

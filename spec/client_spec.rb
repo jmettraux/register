@@ -75,6 +75,38 @@ describe Register::Client do
     end
   end
 
+  describe '#call' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    it 'returns a ticket id' do
+
+      r = cl.call('system', 'put', {})
+
+      r.class.should == String
+    end
+
+    it 'places the call in the _calls list' do
+
+      r = cl.call('nada', 'nada', {})
+
+      tickets = @r.lrange('_calls', 0, -1)
+
+      tickets.length.should == 1
+      tickets.first.should match(/nada/)
+    end
+  end
+
+  describe '#success?' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    it 'returns nil for a unknown ticket' do
+
+      cl.success?('nada').should == nil
+    end
+  end
+
   describe '#close' do
 
     it 'closes the client' do
