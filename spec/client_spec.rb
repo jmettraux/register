@@ -19,7 +19,7 @@ describe Register::Client do
 
       cl = Register::Client.new(REDIS_OPTIONS)
 
-      cl.read('x').should == h
+      cl.read('x').should == Register::Item.new(h)
     end
   end
 
@@ -36,7 +36,7 @@ describe Register::Client do
 
         item = cl.read('x')
 
-        item.should == h
+        item.should == Register::Item.new(h)
       end
     end
 
@@ -66,11 +66,11 @@ describe Register::Client do
 
     context 'when the item does not exist' do
 
-      it 'raises Register::MissingItemError' do
+      it 'raises NoMethodError' do
 
         lambda {
           cl.get('x', 'k')
-        }.should raise_error(Register::MissingItemError)
+        }.should raise_error(NoMethodError)
       end
     end
   end

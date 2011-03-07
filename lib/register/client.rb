@@ -23,6 +23,7 @@
 #++
 
 
+require 'digest/md5'
 require 'redis'
 require 'rufus-json'
 
@@ -38,69 +39,58 @@ module Register
 
     def read(item_id)
 
-      from_json(@redis.get(item_id))
+      Item.from_s(@redis.get(item_id))
     end
 
     def get(item_id, key)
 
-      if item = read(item_id)
-        item[key]
-      else
-        raise Register::MissingItemError.new(item_id)
-      end
+      read(item_id).get(key)
     end
 
     def call(item_id, key, message)
 
-      # TODO : place order in order list
+      ticket = @redis.incr('_ticket').to_s
+
+      @redis.rpush(
+        '_calls',
+        Rufus::Json.encode(
+          'ticket' => ticket,
+          'item_id' => item_id,
+          'key' => key,
+          'message' => message))
+
+      ticket
     end
+
+    def success?(ticket, delete=true)
+
+      result = hget('_tickets', ticket)
+      hdel('_tickets', ticket) if result && delete
+
+      result
+    end
+
+    #def put(item)
+    #  call('put', item.item_id, item)
+    #end
+    #def put(item)
+    #  lock(item.item_id) do
+    #    current = @redis.get(item.item_id)
+    #    current_rev = current ? current['_rev'] : nil
+    #    if current_rev && item.rev != current_rev
+    #      current
+    #    elsif item.rev && current_rev.nil?
+    #      true
+    #    else
+    #      @redis.set(key, item.to_json_with_inc_rev)
+    #      nil
+    #  end
+    #end
 
     def close
 
       @redis.quit
       @redis = nil
-    end
-
-    protected
-
-    def from_json(s)
-
-      s ? Rufus::Json.decode(s) : nil
-    end
-
-    #LOCK_KEY = /-lock$/
-
-    # A locking mecha.
-    #
-    # Mostly inspired from http://code.google.com/p/redis/wiki/SetnxCommand
-    #
-    def lock(key)
-
-      kl = "#{key}-lock"
-
-      loop do
-
-        r = @redis.setnx(kl, Time.now.to_f.to_s)
-
-        break if r != false
-          # lock acquired successfully
-
-        t = @redis.get(kl)
-
-        @redis.del(kl) if t && Time.now.to_f - t.to_f > 60.0
-          # after 1 minute, locks time out
-
-        sleep 0.007 # let's try to lock again after a while
-      end
-
-      #@redis.expire(kl, 2)
-        # this doesn't work, it makes the next call to setnx succeed
-
-      result = yield
-
-      @redis.del(kl)
-
-      result
     end
   end
 end

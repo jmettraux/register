@@ -25,44 +25,6 @@
 
 module Register
 
-  class Item
-
-    def initialize(h)
-
-      @h = h
-    end
-
-    def item_id
-
-      @h['_id']
-    end
-
-    def get(key)
-
-      @h[key]
-    end
-
-    def to_h
-
-      @h
-    end
-
-    def to_s
-
-      Rufus::Json.encode(@h)
-    end
-
-    def ==(other)
-
-      other.is_a?(Register::Item) ? (other.to_h == @h) : false
-    end
-
-    alias eql? ==
-
-    def self.from_s(s)
-
-      s ? self.new(Rufus::Json.decode(s)) : nil
-    end
-  end
+  SYSTEM = Item.new('_id' => 'system')
 end
 
