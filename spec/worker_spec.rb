@@ -4,7 +4,7 @@ require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 
 describe Register::Worker do
 
-  let(:wo) { Register::Worker.new(REDIS_OPTIONS, false) }
+  let(:wo) { Register::Worker.new(REDIS_OPTIONS.merge(:start => false)) }
 
   before(:each) do
 

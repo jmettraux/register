@@ -30,7 +30,12 @@ module Register
     attr_reader :client
     attr_reader :running
 
-    def initialize(redis_opts, start=true)
+    # TODO : :start option
+    #
+    def initialize(redis_opts)
+
+      start = redis_opts.delete(:start)
+      start = start.nil? ? true : start
 
       @client = Register::Client.new(redis_opts)
       @running = false
