@@ -27,13 +27,15 @@ module Register
 
   class Worker
 
+    attr_reader :client
     attr_reader :running
 
-    def initialize(redis_opts)
+    def initialize(redis_opts, start=true)
 
       @client = Register::Client.new(redis_opts)
+      @running = false
 
-      run
+      run if start
     end
 
     def run
@@ -60,9 +62,41 @@ module Register
 
     def step
 
-      call = @client.redis.blpop('_calls_', 1)
+      call = @client.redis.blpop('_calls', 1)
 
-      p call
+      return if call == nil
+
+      call = Rufus::Json.decode(call.last)
+
+      item = @client.read(call['item_id'])
+
+      if item.nil?
+        reply(call, false, "no item '#{call['item_id']}'")
+      elsif call['args']
+        do_call(item, call)
+      else
+        reply(call, true, item.get(call['key']))
+      end
+    end
+
+    def reply(call, success, result)
+
+      if ticket = call['ticket']
+        @client.redis.hset('_tickets', ticket, [ success, result ])
+      #else
+        # no ticket given back
+      end
+    end
+
+    def do_call(item, call)
+
+      prc = eval(item.get(call['key'], item.instance_eval { binding }))
+      res = prc.call(call['args'])
+
+      reply(call, true, res)
+
+    rescue => e
+      reply(call, false, [ e.to_s, e.backtrace ])
     end
 
 #    #LOCK_KEY = /-lock$/

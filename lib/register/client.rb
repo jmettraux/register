@@ -32,6 +32,8 @@ module Register
 
   class Client
 
+    attr_reader :redis
+
     def initialize(redis_opts)
 
       @redis = Redis.new(redis_opts)
@@ -47,9 +49,9 @@ module Register
       read(item_id).get(key)
     end
 
-    def call(item_id, key, message)
+    def call(item_id, key, args, forget=false)
 
-      ticket = @redis.incr('_ticket').to_s
+      ticket = forget ? nil : @redis.incr('_ticket').to_s
 
       @redis.rpush(
         '_calls',
@@ -57,22 +59,24 @@ module Register
           'ticket' => ticket,
           'item_id' => item_id,
           'key' => key,
-          'message' => message))
+          'args' => args))
 
       ticket
     end
 
-    def success?(ticket, delete=true)
+    def result(ticket, delete=true)
 
-      result = @redis.hget('_tickets', ticket)
-      hdel('_tickets', ticket) if result && delete
+      res = @redis.hget('_tickets', ticket)
+      @redis.hdel('_tickets', ticket) if res && delete
 
-      result
+      res ? Rufus::Json.decode(res) : nil
     end
 
-    #def put(item)
-    #  call('put', item.item_id, item)
-    #end
+    def put(item)
+
+      call('system', 'put', item)
+    end
+
     #def put(item)
     #  lock(item.item_id) do
     #    current = @redis.get(item.item_id)

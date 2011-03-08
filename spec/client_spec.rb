@@ -95,15 +95,22 @@ describe Register::Client do
       tickets.length.should == 1
       tickets.first.should match(/nada/)
     end
+
+    it 'returns nil if forget=true' do
+
+      r = cl.call('nada', 'nada', {}, true)
+
+      r.should == nil
+    end
   end
 
-  describe '#success?' do
+  describe '#result' do
 
     let(:cl) { Register::Client.new(REDIS_OPTIONS) }
 
     it 'returns nil for a unknown ticket' do
 
-      cl.success?('nada').should == nil
+      cl.result('nada').should == nil
     end
   end
 

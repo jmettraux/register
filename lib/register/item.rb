@@ -27,9 +27,12 @@ module Register
 
   class Item
 
+    attr_accessor :client
+
     def initialize(h)
 
       @h = h
+      @client = nil
     end
 
     def item_id
@@ -41,6 +44,8 @@ module Register
 
       @h[key]
     end
+
+    alias [] get
 
     def to_h
 
