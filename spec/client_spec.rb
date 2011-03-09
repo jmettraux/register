@@ -111,6 +111,64 @@ describe Register::Client do
         cl.get('nada', 'nada')
       }.should raise_error(Register::ItemNotFoundError)
     end
+
+    it 'returns nil if there is no value for the key' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 1))
+
+      cl.get('x', 'nada').should == nil
+    end
+
+    it 'returns the value if there is one' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 1, 'v' => 2.0))
+
+      cl.get('x', 'v').should == 2.0
+    end
+  end
+
+  describe '#has_key?' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    it 'raises ItemNotFoundError if there is no item' do
+
+      lambda {
+        cl.has_key?('nada', 'nada')
+      }.should raise_error(Register::ItemNotFoundError)
+    end
+
+    it 'returns false if the item has not got the key' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 1))
+
+      cl.has_key?('x', 'nada').should == false
+    end
+
+    it 'returns true if the item has got the key' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 1, 'v' => nil))
+
+      cl.has_key?('x', 'v').should == true
+    end
+
+    it 'goes deep' do
+
+      @r.set(
+        'x',
+        Rufus::Json.encode(
+          '_id' => 'x', '_rev' => 1, '_parent' => 'y'))
+      @r.set(
+        'y',
+        Rufus::Json.encode(
+          '_id' => 'y', '_rev' => 1, '_parent' => 'z', 'n' => 7))
+      @r.set(
+        'z',
+        Rufus::Json.encode(
+          '_id' => 'z', '_rev' => 1, 'n' => 6, 'bottom' => nil))
+
+      cl.has_key?('x', 'bottom').should == true
+    end
   end
 
   describe '#deep_read' do

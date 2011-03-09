@@ -81,6 +81,15 @@ module Register
       item[key]
     end
 
+    def has_key?(item_id, key)
+
+      item = deep_read(item_id)
+
+      raise ItemNotFoundError.new(item_id) unless item
+
+      item.has_key?(key)
+    end
+
     def deep_read(item_id)
 
       line = []
