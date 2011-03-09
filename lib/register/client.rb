@@ -72,6 +72,22 @@ module Register
       res ? Rufus::Json.decode(res) : nil
     end
 
+    # Blocking call, only return with the result.
+    #
+    def bcall(item_id, key, args)
+
+      tic = call(item_id, key, args)
+      res = nil
+
+      loop do
+        sleep 0.100
+        res = result(tic)
+        break if res
+      end
+
+      res
+    end
+
     def put(item)
 
       call('system', 'put', item)

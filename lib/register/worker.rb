@@ -95,7 +95,9 @@ module Register
 
     def do_call(item, call)
 
-      prc = eval(item.get(call['key'], item.instance_eval { binding }))
+      item.redis = @client.redis
+
+      prc = eval(item.get(call['key']), item.instance_eval { binding })
       res = prc.call(call['args'])
 
       reply(call, true, res)
@@ -103,42 +105,6 @@ module Register
     rescue => e
       reply(call, false, [ e.to_s, e.backtrace ])
     end
-
-#    #LOCK_KEY = /-lock$/
-#
-#    # A locking mecha.
-#    #
-#    # Mostly inspired from http://code.google.com/p/redis/wiki/SetnxCommand
-#    #
-#    def lock(key)
-#
-#      kl = "#{key}-lock"
-#
-#      loop do
-#
-#        break if @redis.setnx(kl, Time.now.to_f.to_s) != false
-#          # locking successful
-#
-#        #
-#        # already locked
-#
-#        t = @redis.get(kl)
-#
-#        @redis.del(kl) if t && Time.now.to_f - t.to_f > 60.0
-#          # after 1 minute, locks time out
-#
-#        sleep 0.007 # let's try to lock again after a while
-#      end
-#
-#      #@redis.expire(kl, 2)
-#        # this doesn't work, it makes the next call to setnx succeed
-#
-#      result = yield
-#
-#      @redis.del(kl)
-#
-#      result
-#    end
   end
 end
 

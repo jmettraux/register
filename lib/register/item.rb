@@ -27,7 +27,7 @@ module Register
 
   class Item
 
-    attr_accessor :client
+    attr_accessor :redis
 
     def initialize(h)
 
@@ -52,7 +52,7 @@ module Register
       @h
     end
 
-    def to_s
+    def to_json
 
       Rufus::Json.encode(@h)
     end
