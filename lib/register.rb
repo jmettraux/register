@@ -1,4 +1,7 @@
 
+require 'digest/md5'
+require 'redis'
+require 'rufus-json'
 require 'sourcify'
 
 require 'register/item'

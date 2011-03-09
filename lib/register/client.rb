@@ -23,11 +23,6 @@
 #++
 
 
-require 'digest/md5'
-require 'redis'
-require 'rufus-json'
-
-
 module Register
 
   class Client
