@@ -19,7 +19,7 @@ describe Register::Client do
 
       cl = Register::Client.new(REDIS_OPTIONS)
 
-      cl.read('x').should == Register::Item.new(h)
+      cl.read('x').should == h
     end
   end
 
@@ -36,7 +36,7 @@ describe Register::Client do
 
         item = cl.read('x')
 
-        item.should == Register::Item.new(h)
+        item.should == h
       end
     end
 
@@ -49,35 +49,10 @@ describe Register::Client do
     end
   end
 
-  describe '#get' do
-
-    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
-
-    context 'when the item exists' do
-
-      it 'returns the value in the item' do
-
-        h = { '_id' => 'x', 'k' => 'v' }
-        @r.set('x', Rufus::Json.encode(h))
-
-        cl.get('x', 'k').should == 'v'
-      end
-    end
-
-    context 'when the item does not exist' do
-
-      it 'raises NoMethodError' do
-
-        lambda {
-          cl.get('x', 'k')
-        }.should raise_error(NoMethodError)
-      end
-    end
-  end
-
   describe '#call' do
 
     let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+    let(:wo) { Register::Worker.new(REDIS_OPTIONS.merge(:start => false)) }
 
     it 'returns a ticket id' do
 
@@ -102,6 +77,18 @@ describe Register::Client do
 
       r.should == nil
     end
+
+    it 'behaves like a "get" when args is nil' do
+
+      ticket = cl.call('system', 'put', nil)
+
+      wo.send(:step)
+
+      res = cl.result(ticket)
+
+      res.first.should == true
+      res.last.should match(/^proc do /)
+    end
   end
 
   describe '#result' do
@@ -111,6 +98,59 @@ describe Register::Client do
     it 'returns nil for a unknown ticket' do
 
       cl.result('nada').should == nil
+    end
+  end
+
+  describe '#get' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    it 'raises ItemNotFoundError if there is no item' do
+
+      lambda {
+        cl.get('nada', 'nada')
+      }.should raise_error(Register::ItemNotFoundError)
+    end
+  end
+
+  describe '#deep_read' do
+
+    let(:cl) { Register::Client.new(REDIS_OPTIONS) }
+
+    it 'reads one item when there is no _parent' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 1))
+
+      cl.deep_read('x').should == { '_id' => 'x', '_rev' => 1 }
+    end
+
+    it "reads one item when it's an orphan" do
+
+      @r.set(
+        'x',
+        Rufus::Json.encode('_id' => 'x', '_rev' => 1, '_parent' => 'n'))
+
+      cl.deep_read('x').should == {
+        '_id' => 'x', '_rev' => 1, '_parent' => 'n' }
+    end
+
+    it "merges child and parent" do
+
+      @r.set(
+        'x',
+        Rufus::Json.encode(
+          '_id' => 'x', '_rev' => 1, '_parent' => 'y'))
+      @r.set(
+        'y',
+        Rufus::Json.encode(
+          '_id' => 'y', '_rev' => 1, '_parent' => 'z', 'n' => 7))
+      @r.set(
+        'z',
+        Rufus::Json.encode(
+          '_id' => 'z', '_rev' => 1, 'n' => 6))
+
+      cl.deep_read('x').should == {
+        '_id' => 'x', '_rev' => 1, '_parent' => 'y', 'n' => 7 }
     end
   end
 

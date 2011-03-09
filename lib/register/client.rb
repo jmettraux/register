@@ -25,6 +25,18 @@
 
 module Register
 
+  class ItemNotFoundError < StandardError
+
+    attr_reader :item_id
+
+    def initialize(item_id)
+
+      @item_id = item_id
+
+      super("no item '#{item_id}'")
+    end
+  end
+
   class Client
 
     attr_reader :redis
@@ -36,12 +48,9 @@ module Register
 
     def read(item_id)
 
-      Item.from_s(@redis.get(item_id))
-    end
+      s = @redis.get(item_id)
 
-    def get(item_id, key)
-
-      read(item_id).get(key)
+      s ? Rufus::Json.decode(s) : nil
     end
 
     def call(item_id, key, args, forget=false)
@@ -61,6 +70,36 @@ module Register
           'args' => args))
 
       ticket
+    end
+
+    def get(item_id, key)
+
+      item = deep_read(item_id)
+
+      raise ItemNotFoundError.new(item_id) unless item
+
+      item[key]
+    end
+
+    def deep_read(item_id)
+
+      line = []
+
+      loop do
+
+        item = read(item_id)
+
+        break unless item
+
+        line << item
+        parent_id = item['_parent']
+
+        break unless parent_id
+
+        item_id = parent_id
+      end
+
+      line.reverse.inject(line.pop) { |parent, child| parent.merge!(child) }
     end
 
     def result(ticket, delete=true)
@@ -89,16 +128,7 @@ module Register
 
     def put(item)
 
-      item = item.is_a?(Hash) ? item : item.to_h
-
       call('system', 'put', item)
-    end
-
-    def read_h(item_id)
-
-      s = @redis.get(item_id)
-
-      s ? Rufus::Json.decode(s) : nil
     end
 
     def close

@@ -27,12 +27,10 @@ module Register
 
   class Item
 
-    attr_accessor :client
+    def initialize(client, h)
 
-    def initialize(h)
-
+      @client = client
       @h = h
-      @client = nil
     end
 
     def item_id
@@ -55,18 +53,6 @@ module Register
     def to_json
 
       Rufus::Json.encode(@h)
-    end
-
-    def ==(other)
-
-      other.is_a?(Register::Item) ? (other.to_h == @h) : false
-    end
-
-    alias eql? ==
-
-    def self.from_s(s)
-
-      s ? self.new(Rufus::Json.decode(s)) : nil
     end
 
     protected

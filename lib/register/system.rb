@@ -32,6 +32,9 @@ module Register
       'system',
 
       Item.new(
+
+        nil,
+
         '_id' => 'system',
         '_rev' => '0',
 
@@ -41,7 +44,7 @@ module Register
 
           Register.lock(redis, item['_id']) do
 
-            current = @client.read_h(item['_id'])
+            current = @client.read(item['_id'])
 
             current_rev = current ? current['_rev'] : nil
 
@@ -78,7 +81,7 @@ module Register
 
           Register.lock(redis, item_id) do
 
-            current = @client.read_h(item['_id'])
+            current = @client.read(item['_id'])
             current_rev = current ? current['_rev'] : nil
 
             if current.nil?

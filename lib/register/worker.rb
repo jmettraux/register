@@ -91,7 +91,7 @@ module Register
       elsif call['args']
         do_call(item, call)
       else
-        reply(call, true, item.get(call['key']))
+        reply(call, true, item[call['key']])
       end
     end
 
@@ -111,7 +111,7 @@ module Register
 
     def do_call(item, call)
 
-      item.client = @client
+      item = Register::Item.new(@client, item)
 
       key = item.get(call['key'])
 
