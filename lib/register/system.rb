@@ -28,32 +28,49 @@ module Register
   def self.put_system(redis)
 
     redis.set(
+
       'system',
+
       Item.new(
         '_id' => 'system',
         '_rev' => '0',
 
         'put' => proc { |item|
+
           rev = item['_rev']
+
           Register.lock(@redis, item['_id']) do
+
             current = @redis.get(item['_id'])
+            current = current ? Rufus::Json.decode(current) : nil
+
             current_rev = current ? current['_rev'] : nil
+
             if current_rev && rev != current_rev
-              current
+
+              raise CallError.new(current_rev)
+
             elsif rev && current_rev.nil?
-              false
+
+              raise CallError.new(nil)
+
             else
+
               nrev = (rev || 0) + 1
+
               @redis.set(
                 item['_id'],
                 Rufus::Json.encode(item.merge('_rev' => nrev)))
+
+              # success...
+
               nrev
             end
           end
         }.to_source,
 
-        'echo' => proc { |args|
-          args.collect { |a| a.to_s }.join(' ')
+        'delete' => proc { |item_id, item_rev|
+          # TODO
         }.to_source
 
       ).to_json)

@@ -25,12 +25,23 @@
 
 module Register
 
+  class CallError < StandardError
+
+    attr_reader :result
+
+    def initialize(result)
+
+      @result = result
+      super("result : #{Rufus::Json.encode(result)}")
+    end
+  end
+
   class Worker
 
     attr_reader :client
     attr_reader :running
 
-    # TODO : :start option
+    # TODO : document :start option
     #
     def initialize(redis_opts)
 
@@ -102,10 +113,18 @@ module Register
 
       item.redis = @client.redis
 
-      prc = eval(item.get(call['key']), item.instance_eval { binding })
-      res = prc.call(call['args'])
+      key = item.get(call['key'])
 
-      reply(call, true, res)
+      return reply(call, false, "unknown key '#{call['key']}'") unless key
+
+      prc = eval(key, item.instance_eval { binding })
+
+      begin
+        res = prc.call(call['args'])
+        reply(call, true, res)
+      rescue CallError => ce
+        reply(call, false, ce.result)
+      end
 
     rescue => e
       reply(call, false, [ e.to_s, e.backtrace ])
