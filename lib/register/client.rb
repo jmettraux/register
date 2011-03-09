@@ -67,7 +67,7 @@ module Register
           'ticket' => ticket,
           'item_id' => item_id,
           'key' => key,
-          'args' => args))
+          'args' => to_source(args)))
 
       ticket
     end
@@ -144,6 +144,18 @@ module Register
 
       @redis.quit
       @redis = nil
+    end
+
+    protected
+
+    def to_source(o)
+
+      case o
+        when Proc then o.to_source
+        when Hash then o.inject({}) { |h, (k, v)| h[k] = to_source(v); h }
+        when Array then o.collect { |e| to_source(e) }
+        else o
+      end
     end
   end
 end

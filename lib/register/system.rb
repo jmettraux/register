@@ -31,9 +31,7 @@ module Register
 
       'system',
 
-      Item.new(
-
-        nil,
+      Rufus::Json.encode(
 
         '_id' => 'system',
         '_rev' => '0',
@@ -99,9 +97,13 @@ module Register
               current_rev
             end
           end
+        }.to_source,
+
+        'echo' => proc { |args|
+          args
         }.to_source
 
-      ).to_json)
+      ))
   end
 
   # A locking mecha.

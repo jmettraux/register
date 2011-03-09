@@ -89,6 +89,17 @@ describe Register::Client do
       res.first.should == true
       res.last.should match(/^proc do /)
     end
+
+    it 'turns procs to sources in args' do
+
+      ticket = cl.call('system', 'echo', :func => lambda { p :nada })
+
+      wo.send(:step)
+
+      res = cl.result(ticket)
+
+      res.should == [ true, { 'func' => 'proc { p(:nada) }' } ]
+    end
   end
 
   describe '#result' do
