@@ -11,7 +11,6 @@ describe 'the system items' do
 
     @r = ::Redis.new(REDIS_OPTIONS)
     @r.keys('*').each { |k| @r.del(k) }
-    Register.put_system(@r)
   end
 
   describe "'echo'" do

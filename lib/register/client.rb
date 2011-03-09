@@ -53,6 +53,10 @@ module Register
 
       ticket = forget ? nil : @redis.incr('_ticket').to_s
 
+      if item_id == 'system' and @redis.get('system').nil?
+        Register.put_system(@redis)
+      end
+
       @redis.rpush(
         '_calls',
         Rufus::Json.encode(
