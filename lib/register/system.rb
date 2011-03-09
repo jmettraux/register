@@ -33,12 +33,16 @@ module Register
         '_id' => 'system',
         '_rev' => '0',
 
-        'put' => proc { |args|
-          item = args
-          #lock(item['_id']) do
-            # TODO
-          #end
+        'set' => proc { |args|
+          @redis.set(args['key'], Rufus::Json.encode(args['value']))
         }.to_source,
+
+        #'put' => proc { |args|
+        #  item = args
+        #  lock(item['_id']) do
+        #    # TODO
+        #  end
+        #}.to_source,
 
         'echo' => proc { |args|
           args.collect { |a| a.to_s }.join(' ')

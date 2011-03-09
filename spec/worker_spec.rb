@@ -22,14 +22,11 @@ describe Register::Worker do
 
   describe '#step' do
 
-    it 'returns after 1 second when there are no calls' do
-
-      t = Time.now
-
-      wo.send(:step)
-
-      (Time.now - t).should > 1.0
-    end
+    #it 'returns after 1 second when there are no calls' do
+    #  t = Time.now
+    #  wo.send(:step)
+    #  (Time.now - t).should > 1.0
+    #end
 
     it 'process calls' do
 

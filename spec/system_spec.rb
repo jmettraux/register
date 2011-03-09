@@ -24,5 +24,18 @@ describe 'the system items' do
       cl.result(ticket).should == [ true, 'hello world' ]
     end
   end
+
+  describe "'set'" do
+
+    it 'sets a value' do
+
+      ticket = cl.call('system', 'set', 'key' => 'x', 'value' => %w[ y z ])
+
+      wo.send(:step)
+
+      cl.result(ticket).should == [ true, 'OK' ]
+      @r.get('x').should == Rufus::Json.encode(%w[ y z ])
+    end
+  end
 end
 

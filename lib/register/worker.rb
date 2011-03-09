@@ -48,7 +48,7 @@ module Register
       @running = true
 
       loop do
-        break if @running = false
+        break if @running == false
         step
       end
     end
