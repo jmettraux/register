@@ -99,6 +99,13 @@ module Register
       call('system', 'put', item)
     end
 
+    def read_h(item_id)
+
+      s = @redis.get(item_id)
+
+      s ? Rufus::Json.decode(s) : nil
+    end
+
     def close
 
       @redis.quit

@@ -41,8 +41,7 @@ module Register
 
           Register.lock(redis, item['_id']) do
 
-            current = redis.get(item['_id'])
-            current = current ? Rufus::Json.decode(current) : nil
+            current = @client.read_h(item['_id'])
 
             current_rev = current ? current['_rev'] : nil
 
@@ -69,8 +68,34 @@ module Register
           end
         }.to_source,
 
-        'delete' => proc { |item_id, item_rev|
-          # TODO
+        'delete' => proc { |item|
+
+          item_id, item_rev = if item.is_a?(Hash)
+            [ item['_id'], item['_rev'] ]
+          else
+            item
+          end
+
+          Register.lock(redis, item_id) do
+
+            current = @client.read_h(item['_id'])
+            current_rev = current ? current['_rev'] : nil
+
+            if current.nil?
+
+              raise CallError.new(nil)
+
+            elsif current_rev != item_rev
+
+              raise CallError.new(current_rev)
+
+            else
+
+              redis.del(item_id)
+
+              current_rev
+            end
+          end
         }.to_source
 
       ).to_json)

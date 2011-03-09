@@ -79,5 +79,50 @@ describe 'the system items' do
       cl.result(ticket).should == [ false, nil ]
     end
   end
+
+  describe "'delete'" do
+
+    it 'deletes an item' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 7))
+
+      ticket = cl.call('system', 'delete', '_id' => 'x', '_rev' => 7)
+
+      wo.send(:step)
+
+      @r.get('x').should == nil
+    end
+
+    it 'returns [ true, rev ] when successful' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 7))
+
+      ticket = cl.call('system', 'delete', '_id' => 'x', '_rev' => 7)
+
+      wo.send(:step)
+
+      cl.result(ticket).should == [ true, 7 ]
+    end
+
+    it 'returns [ false, nil ] when the item is already gone' do
+
+      ticket = cl.call('system', 'delete', '_id' => 'x', '_rev' => 7)
+
+      wo.send(:step)
+
+      cl.result(ticket).should == [ false, nil ]
+    end
+
+    it 'returns [ false, current_rev ] when the item is out of date' do
+
+      @r.set('x', Rufus::Json.encode('_id' => 'x', '_rev' => 7))
+
+      ticket = cl.call('system', 'delete', '_id' => 'x', '_rev' => 6)
+
+      wo.send(:step)
+
+      cl.result(ticket).should == [ false, 7 ]
+    end
+  end
 end
 
