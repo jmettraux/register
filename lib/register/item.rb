@@ -27,7 +27,7 @@ module Register
 
   class Item
 
-    attr_accessor :redis
+    attr_accessor :client
 
     def initialize(h)
 
@@ -67,6 +67,13 @@ module Register
     def self.from_s(s)
 
       s ? self.new(Rufus::Json.decode(s)) : nil
+    end
+
+    protected
+
+    def redis
+
+      @client.redis
     end
   end
 end

@@ -39,9 +39,9 @@ module Register
 
           rev = item['_rev']
 
-          Register.lock(@redis, item['_id']) do
+          Register.lock(redis, item['_id']) do
 
-            current = @redis.get(item['_id'])
+            current = redis.get(item['_id'])
             current = current ? Rufus::Json.decode(current) : nil
 
             current_rev = current ? current['_rev'] : nil
@@ -58,7 +58,7 @@ module Register
 
               nrev = (rev || 0) + 1
 
-              @redis.set(
+              redis.set(
                 item['_id'],
                 Rufus::Json.encode(item.merge('_rev' => nrev)))
 

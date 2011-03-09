@@ -111,7 +111,7 @@ module Register
 
     def do_call(item, call)
 
-      item.redis = @client.redis
+      item.client = @client
 
       key = item.get(call['key'])
 

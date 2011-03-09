@@ -94,22 +94,10 @@ module Register
 
     def put(item)
 
+      item = item.is_a?(Hash) ? item : item.to_h
+
       call('system', 'put', item)
     end
-
-    #def put(item)
-    #  lock(item.item_id) do
-    #    current = @redis.get(item.item_id)
-    #    current_rev = current ? current['_rev'] : nil
-    #    if current_rev && item.rev != current_rev
-    #      current
-    #    elsif item.rev && current_rev.nil?
-    #      true
-    #    else
-    #      @redis.set(key, item.to_json_with_inc_rev)
-    #      nil
-    #  end
-    #end
 
     def close
 
