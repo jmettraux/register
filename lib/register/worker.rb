@@ -87,7 +87,12 @@ module Register
     def reply(call, success, result)
 
       if ticket = call['ticket']
-        @client.redis.hset('_tickets', ticket, [ success, result ])
+
+        @client.redis.hset(
+          '_tickets',
+          ticket,
+          Rufus::Json.encode([ success, result ]))
+
       #else
         # no ticket given back
       end

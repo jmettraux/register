@@ -25,16 +25,16 @@ describe 'the system items' do
     end
   end
 
-  describe "'set'" do
+  describe "'put'" do
 
-    it 'sets a value' do
+    it 'puts an item' do
 
-      ticket = cl.call('system', 'set', 'key' => 'x', 'value' => %w[ y z ])
+      ticket = cl.call('system', 'put', '_id' => 'x')
 
       wo.send(:step)
 
-      cl.result(ticket).should == [ true, 'OK' ]
-      @r.get('x').should == Rufus::Json.encode(%w[ y z ])
+      cl.result(ticket).should == [ true, 1 ]
+      @r.get('x').should == Rufus::Json.encode('_id' => 'x', '_rev' => 1)
     end
   end
 end
