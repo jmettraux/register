@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = 'ruote'
   s.summary = 'fun experiment with Redis'
   s.description = %q{
-fun experiment with Redis
+Redis and a few ideas borrowed from Javascript, CouchDB and actors
 }
 
   #s.files = `git ls-files`.split("\n")
