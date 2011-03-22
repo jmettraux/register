@@ -42,8 +42,11 @@ module Register
     attr_reader :running
 
     # TODO : document :start option
+    # TODO : document :run_in_thread option
     #
     def initialize(redis_opts)
+
+      in_thread = redis_opts.delete(:run_in_thread)
 
       start = redis_opts.delete(:start)
       start = start.nil? ? true : start
@@ -51,7 +54,11 @@ module Register
       @client = Register::Client.new(redis_opts)
       @running = false
 
-      run if start
+      if in_thread
+        @thread = Thread.new { run }
+      elsif start
+        run
+      end
     end
 
     def run
