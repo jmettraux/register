@@ -22,53 +22,36 @@
 # Made in Japan.
 #++
 
+$prc = proc do |item|
 
-module Register
+  rev = item['_rev']
 
-  def self.put_system(redis)
+  Register.lock(redis, item['_id']) do
 
-    doc = { '_id' => 'system', '_rev' => '0' }
+    current = @client.read(item['_id'])
 
-    Dir[File.join(File.dirname(__FILE__), 'system', '*.rb')].each do |path|
-      load(path)
-      doc[File.basename(path, '.rb')] = $prc.to_source
+    current_rev = current ? current['_rev'] : nil
+
+    if current_rev && rev != current_rev
+
+      raise CallError.new(current_rev)
+
+    elsif rev && current_rev.nil?
+
+      raise CallError.new(nil)
+
+    else
+
+      nrev = (rev || 0) + 1
+
+      redis.set(
+        item['_id'],
+        Rufus::Json.encode(item.merge('_rev' => nrev)))
+
+      # success...
+
+      nrev
     end
-
-    redis.set('system', Rufus::Json.encode(doc))
-  end
-
-  # A locking mecha.
-  #
-  # Mostly inspired from http://code.google.com/p/redis/wiki/SetnxCommand
-  #
-  def self.lock(redis, key)
-
-    kl = "#{key}-lock"
-
-    loop do
-
-      break if redis.setnx(kl, Time.now.to_f.to_s) != false
-        # locking successful
-
-      #
-      # already locked
-
-      t = redis.get(kl)
-
-      redis.del(kl) if t && Time.now.to_f - t.to_f > 60.0
-        # after 1 minute, locks time out
-
-      sleep 0.007 # let's try to lock again after a while
-    end
-
-    #redis.expire(kl, 2)
-      # this doesn't work, it makes the next call to setnx succeed
-
-    result = yield
-
-    redis.del(kl)
-
-    result
   end
 end
 
